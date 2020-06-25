@@ -6,38 +6,43 @@
 
 {% block body %}
 <div class="content">
-    <h2 style="text-align: center;">Task Master</h2>
+    <!-- <h2 style="text-align: center;">Task Master</h2> -->
     {% if tasks|length < 1 %}
-        <h4 style="text-align: center;" >There are no tasks. Create one below!</h4>
+    <h4 style="text-align: center;">There are no tasks. Create one below!</h4>
     {% else %}
-        <table class="table table-striped">
-            <thead class="thead-dark">
-                <tr>
-                    <th>Task</th>
-                    <th>Added</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
+    <table class="table table-striped">
+        <thead class="thead-dark">
+            <tr>
+                <th>Task</th>
+                <th class="col-2">Added</th>
+                <th class="col-1"></th>
+            </tr>
+        </thead>
+        <tbody>
             {% for task in tasks %}
-                <tr>
-                    <td>{{ task.content }}</td>
-                    <td>{{ task.date_created.date() }}</td>
-                    <td>
-                        <a href="/update/{{ task.id }}"><i class="material-icons md-dark">edit</i></a>
-                        <a href="/delete/{{ task.id }}"><i class="material-icons md-dark">delete</i></a>
-                    </td>
-                </tr>
+            <tr>
+                <td>{{ task.content }}</td>
+                <td>{{ task.date_created.date() }}</td>
+                <td>
+                    <a href="/update/{{ task.id }}"><i class="material-icons md-dark">edit</i></a>
+                    <a href="/delete/{{ task.id }}"><i class="material-icons md-dark">delete</i></a>
+                </td>
+            </tr>
             {% endfor %}
-            </tbody>
-        </table>
+        </tbody>
+    </table>
     {% endif %}
-    <div class="input-group mb-3">
-        <form action="/" method="POST">
-            <input type="text" name="content" id="content">
-            <input type="submit" value="Add Task">
-        </form>
-    </div>
+    <form action="/" method="POST" style="text-align: center;">
+        <div class="input-group mb-3">
+            <input type="text" class="form-control" id="content" name="content" placeholder="New Task"
+                aria-label="New Task" aria-describedby="basic-addon2">
+            <div class="input-group-append">
+                <button class="btn btn-primary" type="submit">Add Task</button>
+            </div>
+        </div>
+    </form>
+
+
 </div>
 
 {% endblock %}
