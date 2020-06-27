@@ -1,0 +1,4 @@
+# include flaskr/schema.sql
+graft kochi/static
+graft kochi/templates
+global-exclude *.pyc
