@@ -8,7 +8,7 @@ import time
 import shutil
 from flask import Flask, render_template, request, redirect, send_from_directory
 
-with open('config.json', 'r') as config_file:
+with open('../config.json', 'r') as config_file:
     data=config_file.read()
 
 config = json.loads(data)
@@ -31,10 +31,10 @@ def my_hook(d):
 def create_app(test_config=None):
     # create and configure the app
     app = Flask(__name__, instance_relative_config=True)
-    app.config.from_mapping(
-        SECRET_KEY='dev',
-        DATABASE=os.path.join(app.instance_path, 'kochi.sqlite'),
-    )
+    # app.config.from_mapping(
+    #     SECRET_KEY='dev',
+    #     DATABASE=os.path.join(app.instance_path, 'kochi.sqlite'),
+    # )
 
     if test_config is None:
         # load the instance config, if it exists, when not testing
