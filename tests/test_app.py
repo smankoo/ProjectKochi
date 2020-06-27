@@ -21,7 +21,7 @@ def test_index(client):
     assert b'type="submit"' in response.data
 
 def test_download(client):
-    response = client.post('/', data={'url':'https://www.youtube.com/watch?v=xP5joP3Ba4cQ'})
+    response = client.post('/', data={'url':'https://www.youtube.com/watch?v=P5joP3Ba4cQ'})
     assert response is not None
     assert response.status_code == 200
     assert response.content_type == 'audio/mpeg'
