@@ -3,22 +3,20 @@ import tempfile
 
 import pytest
 
-import app
+from kochi import create_app
 
 @pytest.fixture
-def client():
-    # db_fd, flaskr.app.config['DATABASE'] = tempfile.mkstemp()
-    app.config['TESTING'] = True
+def app():
+    app = create_app()
+    yield app
 
-    with app.test_client() as client:
-        # with flaskr.app.app_context():
-        #     flaskr.init_db()
-        yield client
 
-    # os.close(db_fd)
-    # os.unlink(flaskr.app.config['DATABASE'])
+@pytest.fixture
+def client(app):
+    return app.test_client()
 
-def test_download():
+
+def test_index(client):
     response = client.get('/')
     assert b'<input' in response.data
     assert b'type="submit"' in response.data
