@@ -48,7 +48,7 @@ def index():
         downloaddir = download_parent + '/' + tmpdir
 
         if not os.path.exists(cachedir):
-            os.mkdir(cachedir)
+            os.makedirs(cachedir)
 
         if not os.path.exists(downloaddir):
             os.mkdir(downloaddir)
