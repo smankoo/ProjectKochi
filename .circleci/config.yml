@@ -5,4 +5,15 @@ jobs:
       - image: 'circleci/python:latest'
     steps:
       - checkout
-      - run: echo 'hello world'
+      - run:
+          command: |
+          sudo pip install pipenv
+          pipenv install
+      - run:
+          command: |
+          pipenv run python manage.py test
+      - store_test_results:
+          path: test-results
+      - store_artifacts:
+          path: test-results
+          destination: tr1
