@@ -31,9 +31,9 @@ jobs:
           path: test-results
 
       - deploy:
-        name: Deploy Master to Heroku
-        command: |
-          if [ "${CIRCLE_BRANCH}" == "master" ]; then
-            git push heroku master
-            heroku restart
-          fi
+          name: Deploy Master to Heroku
+          command: |
+            if [ "${CIRCLE_BRANCH}" == "master" ]; then
+              git push heroku master
+              heroku restart
+            fi
