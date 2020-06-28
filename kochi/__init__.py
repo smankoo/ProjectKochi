@@ -6,7 +6,7 @@ import json
 import sys
 import time
 import shutil
-from flask import Flask, render_template, request, redirect, send_from_directory
+from flask import Flask, render_template, request, redirect, send_from_directory, url_for, Response
 
 my_path = os.path.abspath(os.path.dirname(__file__))
 config_loc = os.path.join(my_path, "../config.json")
@@ -16,35 +16,9 @@ with open(config_loc, 'r') as config_file:
 
 config = json.loads(data)
 
-class MyLogger(object):
-    def debug(self, msg):
-        pass
-
-    def warning(self, msg):
-        pass
-
-    def error(self, msg):
-        print(msg)
-
-
-def my_hook(d):
-    if d['status'] == 'finished':
-        print('Done downloading, now converting ...')
 
 def create_app(test_config=None):
-    # create and configure the app
     app = Flask(__name__, instance_relative_config=True)
-    # app.config.from_mapping(
-    #     SECRET_KEY='dev',
-    #     DATABASE=os.path.join(app.instance_path, 'kochi.sqlite'),
-    # )
-
-    if test_config is None:
-        # load the instance config, if it exists, when not testing
-        app.config.from_pyfile('config.py', silent=True)
-    else:
-        # load the test config if passed in
-        app.config.from_mapping(test_config)
 
     # ensure the instance folder exists
     try:
@@ -52,13 +26,21 @@ def create_app(test_config=None):
     except OSError:
         pass
 
+    global download_perc
+    download_perc = 0
+
     @app.route('/', methods=['POST', 'GET'])
     def index():
+        global download_perc
+        download_perc = 0
+        # return(render_template('index.html'))
         if request.method == 'GET':
             cleanup()
             return(render_template('index.html'))
+            
         elif request.method == 'POST':
 
+            
             url = request.form['url']
             if url == "":
                 return(render_template('index.html'))
@@ -93,6 +75,8 @@ def create_app(test_config=None):
                 file_name = os.listdir(downloaddir)[0]
                 return send_from_directory(downloaddir, file_name, as_attachment = True)
 
+            return( render_template('download.html') )
+
     @app.route('/cleanup')
     def cleanup():
         download_parent = config['download_dir']
@@ -110,9 +94,33 @@ def create_app(test_config=None):
 
         return(json.dumps(delete_list))
 
+    def my_hook(d):
+        global download_perc
+        download_perc = round(d['downloaded_bytes']*100 / d['total_bytes'])
+        if download_perc > 30:
+            print(download_perc)
+
+    @app.route('/progress')
+    def progress():
+        if download_perc > 30:
+            print(download_perc)
+        return Response("data:" + str(download_perc) + "\n\n", mimetype= 'text/event-stream')
+
 
     return app
 
+class MyLogger(object):
+    def debug(self, msg):
+        pass
 
-if __name__ == '__main__':
-    app.run(debug=True)
+    def warning(self, msg):
+        pass
+
+    def error(self, msg):
+        print(msg)
+
+def my_hook(d):
+    if d['status'] == 'finished':
+        print('Done downloading, now converting ...')
+
+
