@@ -18,15 +18,20 @@ def client(app):
 def test_index(client):
     response = client.get('/')
     assert b'<input' in response.data
-    assert b'type="submit"' in response.data
+    assert b'<button' in response.data
 
 def test_download(client):
-    response = client.post('/', data={'url':'https://www.youtube.com/watch?v=P5joP3Ba4cQ'})
-    assert response is not None
-    assert response.status_code == 200
-    assert response.content_type == 'audio/mpeg'
-    assert response.content_length == 3130657
-    return(response)
+    data = {'url':'https://www.youtube.com/watch?v=P5joP3Ba4cQ'}
+    response1 = client.get('/_download', query_string = data)
+    json_data = response1.get_json()
+    downloadid = json_data['downloadid']
+    response2 = client.get('/getfile?downloadid=' + downloadid)
+
+    assert response2 is not None
+    assert response2.status_code == 200
+    assert response2.content_type == 'audio/mpeg'
+    assert response2.content_length == 3130657
+    return(response2)
 
 if __name__ == '__main__':
     app = create_app()
