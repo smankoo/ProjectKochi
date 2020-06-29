@@ -1,3 +1,4 @@
+APScheduler==3.6.3
 astroid==2.4.2
 attrs==19.3.0
 click==7.1.2
@@ -7,13 +8,13 @@ ffmpeg-python==0.2.0
 ffprobe==0.5
 flake8==3.8.3
 Flask==1.1.2
-Flask-SQLAlchemy==2.4.3
+Flask-Script==2.0.6
 future==0.18.2
 gunicorn==20.0.4
 isort==4.3.21
 itsdangerous==1.1.0
 Jinja2==2.11.2
--e git+https://github.com/smankoo/ProjectKochi.git@4b90e83fdb98fda148ac0683b1ab2f1010bb524a#egg=kochi
+-e git+https://github.com/smankoo/ProjectKochi.git@45ea3b5de58043efccfc8fbde3c91a1251b5075f#egg=kochi
 lazy-object-proxy==1.4.3
 MarkupSafe==1.1.1
 mccabe==0.6.1
@@ -28,10 +29,13 @@ pylint-flask==0.6
 pylint-plugin-utils==0.6
 pyparsing==2.4.7
 pytest==5.4.3
+pytz==2020.1
 six==1.15.0
 SQLAlchemy==1.3.17
 toml==0.10.1
+tzlocal==2.1
 wcwidth==0.2.5
 Werkzeug==1.0.1
 wrapt==1.12.1
+xmlrunner==1.7.7
 youtube-dl==2020.6.16.1
