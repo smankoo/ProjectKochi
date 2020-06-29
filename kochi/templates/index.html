@@ -91,6 +91,8 @@
             $('.progress-bar-label').text("Done");
             window.location.href = $currloc + 'getfile?downloadid=' + data.downloadid
         });
+
+        $.get($SCRIPT_ROOT +'/cleanup')
         
         return false;
       });
