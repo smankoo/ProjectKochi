@@ -1,6 +1,9 @@
 .vscode
 *.m4a
 *.mp3
+*.tmp
+*.tmp/
+*.tmp/*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

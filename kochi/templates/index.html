@@ -2,44 +2,147 @@
 
 {% block head %}
 
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
-    <script>
-
-    var source = new EventSource("/progress");
-    source.onmessage = function(event) {
-        $('.progress-bar').css('width', event.data+'%').attr('aria-valuenow', event.data);
-        $('.progress-bar-label').text(event.data+'%');
-
-        if(event.data == 100){
-            source.close()
-        }
-    }
-    </script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 
 {% endblock %}
 
 {% block body %}
 <div class="content col-8 mx-auto">
-    <!-- {% if tasks|length < 1 %}
+  <!-- {% if tasks|length < 1 %}
     <h4 style="text-align: center;">There are no tasks. Create one below!</h4>
     {% else %}
     {% endif %} -->
-    <form action="/" method="POST" style="text-align: center;">
-        <div class="input-group mb-3">
-            <input type="text" class="form-control" id="url" name="url" placeholder="YouTube URL Here..."
-                aria-label="New Task" aria-describedby="basic-addon2">
-            <div class="input-group-append">
-                <button class="btn btn-primary" type="submit">Download</button>
-            </div>
-        </div>
-    </form>
-    <div class="progress" style="width: 50%; margin: 50px;">
-		<div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%">
-			<span class="progress-bar-label">0%</span>
-		</div>
-	</div>
+  <form style="text-align: center;">
+    <div class="input-group mb-3">
+      <input type="text" class="form-control" id="url" name="url" placeholder="YouTube URL Here..."
+        aria-label="New Task" aria-describedby="basic-addon2">
+      <div class="input-group-append">
+        <a href="#" id="download">
+          <button role="button" class="btn btn-primary" type="button" id="downloadbutton" style="width: 200px">
+            <span class="spinner-border spinner-border-sm" id="loadingspinner" role="status" aria-hidden="true"
+              style="display: none;"></span>
+            <span id="downloadbuttontext">
+              Download
+            </span>
+          </button>
+        </a>
+      </div>
+    </div>
+  </form>
+  <div class="alert alert-danger" id="badurl-alert" style="display: none;">
+    <strong>ERROR! </strong> Bad url.
+  </div>
+  <div id="progressdiv" class="progress mx-auto" style="width: 100%; margin: 0px; display: none;">
+    <div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="0" aria-valuemin="0"
+      aria-valuemax="100" style="width: 0%">
+      <span class="progress-bar-label">0%</span>
+    </div>
+  </div>
+  <div id="downloadlinkdiv" style="text-align: center; display: none; margin: 50px;">
+    <div>
+      <a href="#" id="downloadlink">Download</a>
+    </div>
+  </div>
+
+
 </div>
+
+
+
+{% endblock %}
+
+
+{% block js %}
+
+<script type=text/javascript>
+    $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+</script>
+
+<script type=text/javascript>
+    $(function() {
+      $('a#download').bind('click', function() {
+
+        
+        // url = "https://www.youtube.com/watch?v=YStuNiouiW4";
+
+        url = $("input#url").val();
+        const regex = RegExp('(http\:\/\/)?(www\.youtube\.com|youtu\.?be)\/.+');
+
+        if(regex.test(url) == false){
+          console.log("Bad URL: " + url)
+          // alert("Bad URL: " + url);
+          $("#badurl-alert").fadeTo(2000, 500).slideUp(500, function() {
+                                                        $("#badurl-alert").slideUp(500);
+                                                      });
+          return;;
+        }
+
+        set_button_loading();
+        start_progress_bar();
+        // alert(url);
+        $.getJSON($SCRIPT_ROOT + '/_download', {
+            "url": url
+          }, function(data) {
+            $currloc = window.location.href.split('?')[0].split('#')[0];
+            // alert($currloc + 'getfile?downloadid=' + data.downloadid);
+            $("a#downloadlink").attr("href", $currloc + 'getfile?downloadid=' + data.downloadid);
+            $("div#downloadlinkdiv").show();
+            set_button_normal();
+            $('.progress-bar-label').text("Done");
+            window.location.href = $currloc + 'getfile?downloadid=' + data.downloadid
+        });
+        
+        return false;
+      });
+    });
+  </script>
+
+<script>
+  // function start_progress_bar() {
+  //   $("#progressdiv").show();
+  //   var source = new EventSource("/_progress");
+  //   source.onmessage = function (event) {
+  //     $('.progress-bar').css('width', event.data + '%').attr('aria-valuenow', event.data);
+  //     $('.progress-bar-label').text(event.data + '%');
+
+  //     if (event.data == 100) {
+  //       source.close()
+  //     }
+  //   }
+  // }
+
+  function set_button_loading() {
+    $("span#loadingspinner").show();
+    $("span#downloadbuttontext").text("Downloading...");
+    $("button#downloadbutton").prop("disabled", true);
+  }
+
+  function set_button_normal() {
+    $("span#loadingspinner").hide();
+    $("span#downloadbuttontext").text("Download");
+    $("button#downloadbutton").prop("disabled", false);
+  }
+
+  var bartimer
+  function start_progress_bar() {
+    $('.progress-bar').css('width', 0 + '%').attr('aria-valuenow', 0);
+    $('.progress-bar-label').text(0 + '%');
+    $("#progressdiv").show();
+    bartimer = setInterval(update_progress_bar, 100);
+  }
+
+  function update_progress_bar() {
+    $.getJSON('/_getprogress', {}, function (data) {
+      // alert(data.perc)
+      $('.progress-bar').css('width', data.perc + '%').attr('aria-valuenow', data.perc);
+      $('.progress-bar-label').text(data.perc + '%');
+      if (data.perc == 100) {
+        clearInterval(bartimer)
+        $('.progress-bar-label').text('Download complete. Now converting...');
+        $("span#downloadbuttontext").text("Converting...");
+      }
+    });
+  }
+</script>
 
 {% endblock %}
