@@ -63,7 +63,7 @@
       $('a#download').bind('click', function() {
 
         
-        // url = "https://www.youtube.com/watch?v=YStuNiouiW4";
+        $("div#downloadlinkdiv").hide();
 
         url = $("input#url").val();
         const regex = RegExp('(http\:\/\/)?(www\.youtube\.com|youtu\.?be)\/.+');
@@ -78,7 +78,7 @@
         }
 
         set_button_loading();
-        start_progress_bar();
+        // start_progress_bar();
         // alert(url);
         $.getJSON($SCRIPT_ROOT + '/_download', {
             "url": url

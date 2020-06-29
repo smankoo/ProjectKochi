@@ -78,7 +78,6 @@ def create_app(test_config=None):
             ydl.download([url])
 
         if len(os.listdir(downloaddir)) == 1:
-            file_name = os.listdir(downloaddir)[0]
             return jsonify({"downloadid" : downloadid})
         else:
             raise "Invalid number of files in downloaddir"
