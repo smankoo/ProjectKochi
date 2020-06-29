@@ -21,7 +21,7 @@ def test_index(client):
     assert b'<button' in response.data
 
 def test_download(client):
-    data = {'url':'https://www.youtube.com/watch?v=P5joP3Ba4cQ'}
+    data = {"url":"https://www.youtube.com/watch?v=P5joP3Ba4cQ"}
     response1 = client.get('/_download', query_string = data)
     json_data = response1.get_json()
     downloadid = json_data['downloadid']
@@ -38,5 +38,3 @@ if __name__ == '__main__':
     client = app.test_client()
     r = test_download(client)
     print('Done')
-
-    
