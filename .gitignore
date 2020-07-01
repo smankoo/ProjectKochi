@@ -4,6 +4,7 @@
 *.tmp
 *.tmp/
 *.tmp/*
+*.bak
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
