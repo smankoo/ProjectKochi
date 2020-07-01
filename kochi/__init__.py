@@ -29,13 +29,9 @@ def create_app(test_config=None):
     except OSError:
         pass
 
-    global download_perc
-    download_perc = 0
 
     @app.route('/', methods=['POST', 'GET'])
     def index():
-        global download_perc
-        download_perc = 0
         return(render_template('index.html'))
 
     @app.route('/test')
@@ -72,8 +68,6 @@ def create_app(test_config=None):
             'progress_hooks': [my_hook],
             'outtmpl': downloaddir + '/%(title)s.%(ext)s',
         }
-        global download_perc
-        download_perc = 0
         with youtube_dl.YoutubeDL(ydl_opts) as ydl:
             ydl.download([url])
 
@@ -94,13 +88,14 @@ def create_app(test_config=None):
 
 
     def my_hook(d):
-        global download_perc
-        download_perc = round(d['downloaded_bytes']*100 / d['total_bytes'])
-        if download_perc > 30:
-            print(download_perc)
+        # download_perc = round(d['downloaded_bytes']*100 / d['total_bytes'])
+        # if download_perc > 30:
+        #     print("download_perc:" + download_perc)
+        pass
 
     @app.route('/_getprogress')
     def progress():
+        download_perc = 0
         data = "perc:" + str(download_perc) + "\n\n"
         print(data)
 
@@ -123,6 +118,17 @@ def create_app(test_config=None):
                 shutil.rmtree(d)
 
         return(json.dumps(delete_list))
+
+    
+    @app.route('/_getplaylistitems')
+    def get_playlist_items():
+        url = "https://music.youtube.com/playlist?list=OLAK5uy_m_Kjhx3wck_RmcJuPf0kLR60t4hpP65Pc"
+
+        ydl_opts = {}
+        with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+            ydl_info = ydl.extract_info(url, download=False)
+
+        return jsonify(ydl_info)
 
     return app
 
