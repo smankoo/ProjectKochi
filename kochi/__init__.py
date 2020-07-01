@@ -6,6 +6,8 @@ import json
 import sys
 import time
 import shutil
+import datetime
+
 from flask import Flask, render_template, request, redirect, send_from_directory, url_for, Response, jsonify
 
 import time
@@ -122,15 +124,23 @@ def create_app(test_config=None):
     
     @app.route('/_getplaylistitems')
     def get_playlist_items():
-        url = "https://music.youtube.com/playlist?list=OLAK5uy_m_Kjhx3wck_RmcJuPf0kLR60t4hpP65Pc"
+        # url = "https://music.youtube.com/playlist?list=OLAK5uy_m_Kjhx3wck_RmcJuPf0kLR60t4hpP65Pc"
+        url = request.args.get('url')
 
         ydl_opts = {}
         with youtube_dl.YoutubeDL(ydl_opts) as ydl:
             ydl_info = ydl.extract_info(url, download=False)
 
-        return jsonify(ydl_info)
+        return render_template('index.html', ydl_info=ydl_info)
+
+    
+    @app.template_filter('sec_to_time')
+    def sec_to_time(sec):
+        return str(datetime.timedelta(seconds=sec))
 
     return app
+
+
 
 class MyLogger(object):
     def debug(self, msg):

@@ -44,7 +44,44 @@
     </div>
   </div>
 
+  <!-- <form>
+    <a href="#" id="test">
+      <button role="button" class="btn btn-secondary" type="button" id="testbutton" style="width: 200px">
+        Test
+      </button>
+    </a>
+  </form> -->
+  {% if ydl_info is defined %}
+  <div id="playlistdiv" style="text-align: center; margin: 50px;">
+    <h3 style="margin: 50px;">{{ ydl_info['title'] }}</h3>
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th scope="col">#</th>
+          <th scope="col">Thumbnail</th>
+          <th scope="col">Title</th>
+          <th scope="col">Duration</th>
+          <th scope="col">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
 
+        {% for item in ydl_info['entries'] %}
+        <tr>
+          <th scope="row">{{ item['playlist_index'] }}</th>
+          <td><img src="{{ item['thumbnails'][0]['url'] }}"> </td>
+          <td>{{ item['title'] }}</td>
+          <td>{{ item['duration']|sec_to_time }}</td>
+          <td></td>
+        </tr>
+        {% endfor %}
+
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
+  <!-- join((item['duration'] - (item['duration']/60|round))|string) -->
 </div>
 
 

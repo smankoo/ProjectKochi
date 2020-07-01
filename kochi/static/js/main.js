@@ -1,40 +1,53 @@
 
 $(function () {
-    $('a#download').bind('click', function () {
-        $("div#downloadlinkdiv").hide();
+    $('a#download').bind('click', function() {
 
-        url = $("input#url").val();
-        const regex = RegExp('(http\:\/\/)?(www\.youtube\.com|youtu\.?be)\/.+');
-
-        if (regex.test(url) == false) {
-            console.log("Bad URL: " + url)
-            // alert("Bad URL: " + url);
-            $("#badurl-alert").fadeTo(2000, 500).slideUp(500, function () {
-                $("#badurl-alert").slideUp(500);
+            console.log("download_clicked()")
+            $("div#downloadlinkdiv").hide();
+        
+            url = $("input#url").val();
+            const regex = RegExp('(http\:\/\/)?(www\.youtube\.com|youtu\.?be)\/.+');
+        
+            if (regex.test(url) == false) {
+                console.log("Bad URL: " + url)
+                // alert("Bad URL: " + url);
+                $("#badurl-alert").fadeTo(2000, 500).slideUp(500, function () {
+                    $("#badurl-alert").slideUp(500);
+                });
+                return;;
+            }
+        
+            set_button_loading();
+            // start_progress_bar();
+            // alert(url);
+            $.getJSON($SCRIPT_ROOT + '/_download', {
+                "url": url
+            }, function (data) {
+                $currloc = window.location.href.split('?')[0].split('#')[0];
+                // alert($currloc + 'getfile?downloadid=' + data.downloadid);
+                $("a#downloadlink").attr("href", $currloc + 'getfile?downloadid=' + data.downloadid);
+                $("div#downloadlinkdiv").show();
+                set_button_normal();
+                $('.progress-bar-label').text("Done");
+                window.location.href = $currloc + 'getfile?downloadid=' + data.downloadid
             });
-            return;;
-        }
+        
+            $.get($SCRIPT_ROOT + '/cleanup')
+        
+            return false;
+    } );
 
-        set_button_loading();
-        // start_progress_bar();
-        // alert(url);
-        $.getJSON($SCRIPT_ROOT + '/_download', {
-            "url": url
-        }, function (data) {
-            $currloc = window.location.href.split('?')[0].split('#')[0];
-            // alert($currloc + 'getfile?downloadid=' + data.downloadid);
-            $("a#downloadlink").attr("href", $currloc + 'getfile?downloadid=' + data.downloadid);
-            $("div#downloadlinkdiv").show();
-            set_button_normal();
-            $('.progress-bar-label').text("Done");
-            window.location.href = $currloc + 'getfile?downloadid=' + data.downloadid
-        });
 
-        $.get($SCRIPT_ROOT + '/cleanup')
+    // $('a#downloadplaylista').bind('click', function() {
+    //     alert("fired")
+    //     $.get('/_getplaylistitems', {"url": url})
+    // });
 
-        return false;
-    });
 });
+
+function isHidden(el) {
+    return (el.offsetParent === null)
+}
 
 // function start_progress_bar() {
 //   $("#progressdiv").show();
@@ -81,7 +94,8 @@ function update_progress_bar() {
         }
     });
 
-    function show_playlist_table() {
-        $("#playlisttable").show();
-    }
+}
+
+function show_playlist() {
+    $("#playlistdiv").show();
 }
