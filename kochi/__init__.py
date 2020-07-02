@@ -122,16 +122,19 @@ def create_app(test_config=None):
         return(json.dumps(delete_list))
 
     
-    @app.route('/_getplaylistitems')
+    @app.route('/_getplaylistitems', methods=['POST', 'GET'])
     def get_playlist_items():
         # url = "https://music.youtube.com/playlist?list=OLAK5uy_m_Kjhx3wck_RmcJuPf0kLR60t4hpP65Pc"
         url = request.args.get('url')
+
+        print("Received Playlist URL is: " + url)
 
         ydl_opts = {}
         with youtube_dl.YoutubeDL(ydl_opts) as ydl:
             ydl_info = ydl.extract_info(url, download=False)
 
-        return render_template('index.html', ydl_info=ydl_info)
+        return ydl_info
+        # return render_template('index.html', ydl_info=ydl_info)
 
     
     @app.template_filter('sec_to_time')

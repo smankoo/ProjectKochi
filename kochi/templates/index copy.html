@@ -30,6 +30,13 @@
     </div>
   </form>
 
+  <a href="#" id="playlistdownload">
+    <button role="button" class="btn btn-primary" type="button" id="playlistdownloadbutton" style="width: 200px">
+        Download
+    </button>
+  </a>
+
+
   <div class="alert alert-danger" id="badurl-alert" style="display: none;">
     <strong>ERROR! </strong> Bad url.
   </div>
@@ -52,14 +59,13 @@
       </button>
     </a>
   </form> -->
-
+  <!-- {% if ydl_info is defined %} -->
   <div id="playlistdiv" style="text-align: center; margin: 50px;">
-
+    <!-- <h3 style="margin: 50px;">{{ ydl_info['title'] }}</h3> -->
     <h3 id="playlisttitle" style="margin: 50px;">Playlist Title</h3>
     <table id="playlisttable" class="table table-striped">
       <thead>
         <tr>
-          <th scope="col"></th>
           <th scope="col">#</th>
           <th scope="col">Thumbnail</th>
           <th scope="col">Title</th>
@@ -69,10 +75,22 @@
       </thead>
       <tbody>
 
+        <!-- {% for item in ydl_info['entries'] %}
+        <tr>
+          <th scope="row">{{ item['playlist_index'] }}</th>
+          <td><img src="{{ item['thumbnails'][0]['url'] }}"> </td>
+          <td>{{ item['title'] }}</td>
+          <td>{{ item['duration']|sec_to_time }}</td>
+          <td></td>
+        </tr>
+        {% endfor %} -->
+
       </tbody>
     </table>
   </div>
+  <!-- {% endif %} -->
 
+  <!-- join((item['duration'] - (item['duration']/60|round))|string) -->
 </div>
 
 
