@@ -72,9 +72,10 @@ def create_app(test_config=None):
         }
         with youtube_dl.YoutubeDL(ydl_opts) as ydl:
             ydl.download([url])
+            ydl_info = ydl.extract_info(url, download=False)
 
         if len(os.listdir(downloaddir)) == 1:
-            return jsonify({"downloadid" : downloadid})
+            return jsonify({"downloadid" : downloadid, "ydl_info" : ydl_info})
         else:
             raise "Invalid number of files in downloaddir"
 

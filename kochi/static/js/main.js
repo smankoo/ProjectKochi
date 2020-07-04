@@ -1,6 +1,9 @@
 $(function () {
     $('a#download').bind('click', function () {
         // $("input#url").val("https://music.youtube.com/playlist?list=OLAK5uy_m_Kjhx3wck_RmcJuPf0kLR60t4hpP65Pc");
+        $("#playlistdiv").hide();
+        $("div#downloadlinkdiv").hide();
+
         url = $("input#url").val();
         const regex = RegExp('(http\:\/\/)?(www\.)?(youtube\.com|youtu\.?be)\/.+');
 
@@ -36,6 +39,7 @@ function get_video(url) {
         $currloc = window.location.href.split('?')[0].split('#')[0];
         // alert($currloc + 'getfile?downloadid=' + data.downloadid);
         $("a#downloadlink").attr("href", $currloc + 'getfile?downloadid=' + data.downloadid);
+        $("a#downloadlink").text(data.ydl_info['title']);
         $("div#downloadlinkdiv").show();
         $('.progress-bar-label').text("Done");
         set_button_normal();
