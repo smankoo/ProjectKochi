@@ -45,7 +45,8 @@ def test_download_music(client):
     assert response2.content_type == 'audio/mpeg'
 
     # Tolerate some error in content length presumably due to ffmpeg encoding differences
-    assert (response2.content_length >= 8401965*0.9998 and response2.content_length <= 8401965*1.0002)
+    # assert (response2.content_length >= 8401965*0.9998 and response2.content_length <= 8401965*1.0002)
+    assert response2.content_length == 8401965
     return(response2)
 
 if __name__ == '__main__':
