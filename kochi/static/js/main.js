@@ -2,7 +2,17 @@ $(function () {
     $('a#download').bind('click', function () {
         // $("input#url").val("https://music.youtube.com/playlist?list=OLAK5uy_m_Kjhx3wck_RmcJuPf0kLR60t4hpP65Pc");
         url = $("input#url").val();
-        console.log("here")
+        const regex = RegExp('(http\:\/\/)?(www\.)?(youtube\.com|youtu\.?be)\/.+');
+
+        if (regex.test(url) == false) {
+            console.log("Bad URL: " + url)
+            // alert("Bad URL: " + url);
+            $("#badurl-alert").fadeTo(2000, 500).slideUp(500, function () {
+                $("#badurl-alert").slideUp(500);
+            });
+            return;;
+        }
+
         set_button_loading();
         if (url.includes("playlist")) {
             get_playlist(url);
@@ -17,18 +27,6 @@ function get_video(url) {
 
     console.log("download_clicked()")
     $("div#downloadlinkdiv").hide();
-
-
-    const regex = RegExp('(http\:\/\/)?(www\.)?(youtube\.com|youtu\.?be)\/.+');
-
-    if (regex.test(url) == false) {
-        console.log("Bad URL: " + url)
-        // alert("Bad URL: " + url);
-        $("#badurl-alert").fadeTo(2000, 500).slideUp(500, function () {
-            $("#badurl-alert").slideUp(500);
-        });
-        return;;
-    }
 
     // start_progress_bar();
     // alert(url);
