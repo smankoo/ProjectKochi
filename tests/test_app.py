@@ -33,6 +33,19 @@ def test_download(client):
     assert response2.content_length == 3130657
     return(response2)
 
+def test_download_music(client):
+    data = {"url":"https://music.youtube.com/watch?v=AjQzgbVYUjw&feature=share"}
+    response1 = client.get('/_download', query_string = data)
+    json_data = response1.get_json()
+    downloadid = json_data['downloadid']
+    response2 = client.get('/getfile?downloadid=' + downloadid)
+
+    assert response2 is not None
+    assert response2.status_code == 200
+    assert response2.content_type == 'audio/mpeg'
+    assert response2.content_length == 8401965
+    return(response2)
+
 if __name__ == '__main__':
     app = create_app()
     client = app.test_client()
