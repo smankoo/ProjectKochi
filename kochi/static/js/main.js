@@ -19,7 +19,7 @@ function get_video(url) {
     $("div#downloadlinkdiv").hide();
 
 
-    const regex = RegExp('(http\:\/\/)?(www\.youtube\.com|youtu\.?be)\/.+');
+    const regex = RegExp('(http\:\/\/)?(www\.)?(youtube\.com|youtu\.?be)\/.+');
 
     if (regex.test(url) == false) {
         console.log("Bad URL: " + url)
