@@ -58,16 +58,24 @@ $(function () {
         }
     });
 
+    $('body').on('click', '.btnplaylistitemdownload', function () {
+        var url = $(this).attr("url");
+        console.log("Clicked : " + url);
+        set_button_loading($(this).prop("id"));
+        get_video(url, $(this).prop("id"));
+    });
+
+
 });
 
-function get_video(url) {
+function get_video(url, btnid="") {
 
     console.log("download_clicked()")
     $("div#downloadlinkdiv").hide();
 
     // start_progress_bar();
     // alert(url);
-    $.getJSON($SCRIPT_ROOT + '/_download', {
+    $.getJSON($SCRIPT_ROOT + '/_download/single', {
         "url": url
     }, function (data) {
         $currloc = window.location.href.split('?')[0].split('#')[0];
@@ -76,7 +84,7 @@ function get_video(url) {
         $("a#downloadlink").text(data.ydl_info['title']);
         $("div#downloadlinkdiv").show();
         $('.progress-bar-label').text("Done");
-        set_button_normal();
+        set_button_normal(btnid);
         window.location.href = $currloc + 'getfile?downloadid=' + data.downloadid
     });
 
@@ -124,7 +132,8 @@ function get_playlist(url) {
             row += "<td>" + durationPretty + "</td>";
             row += "<td> \
                         <a href=\"#\" id=\"download" + item['playlist_index'] + "\"> \
-                            <button role=\"button\" class=\"btn btn-primary\" type=\"button\" id=\"downloadbutton" + item['playlist_index'] + "\"  > \
+                            <button role=\"button\" class=\"btn btn-primary btnplaylistitemdownload\" type=\"button\" id=\"downloadbutton" + item['playlist_index'] + "\" \
+                              url=\"" + item['webpage_url'] + "\" > \
                                 <span class=\"spinner-border spinner-border-sm\" id=\"loadingspinner" + item['playlist_index'] + "\" role=\"status\" aria-hidden=\"true\" \
                                     style=\"display: none;\"></span> \
                                 <span id=\"downloadbuttontext" + item['playlist_index'] + "\"> \
@@ -167,17 +176,33 @@ function isHidden(el) {
 //   }
 // }
 
-function set_button_loading() {
-    console.log("inside set_button_loading");
-    $("span#loadingspinner").show();
-    $("span#downloadbuttontext").text("Downloading...");
-    $("button#downloadbutton").prop("disabled", true);
+function set_button_loading(btnid="") {
+    var itemid = 0;
+    itemid = btnid.replace("downloadbutton", "");
+    if(itemid != 0) {
+        $("span#loadingspinner"+itemid).show();
+        $("span#downloadbuttontext"+itemid).hide();
+        $("button#downloadbutton"+itemid).prop("disabled", true);
+    } else {
+        $("span#loadingspinner").show();
+        $("span#downloadbuttontext").text("Downloading...");
+        $("button#downloadbutton").prop("disabled", true);
+    }
 }
 
-function set_button_normal() {
-    $("span#loadingspinner").hide();
-    $("span#downloadbuttontext").text("Download");
-    $("button#downloadbutton").prop("disabled", false);
+function set_button_normal(btnid="") {
+    var itemid = 0;
+    itemid = btnid.replace("downloadbutton", "");
+    if(itemid != 0) {
+        $("span#loadingspinner"+itemid).hide();
+        $("span#downloadbuttontext"+itemid).show();
+        $("button#downloadbutton"+itemid).prop("disabled", false);
+    } else {
+        $("span#loadingspinner").hide();
+        $("span#downloadbuttontext").text("Download");
+        $("button#downloadbutton").prop("disabled", false);
+    }
+   
 }
 
 // var bartimer

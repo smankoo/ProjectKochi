@@ -12,12 +12,13 @@ from flask import Flask, render_template, request, redirect, send_from_directory
 
 import time
 import atexit
+from slugify import slugify
 
 my_path = os.path.abspath(os.path.dirname(__file__))
 config_loc = os.path.join(my_path, "../config.json")
 
 with open(config_loc, 'r') as config_file:
-    data=config_file.read()
+    data = config_file.read()
 
 config = json.loads(data)
 
@@ -31,7 +32,6 @@ def create_app(test_config=None):
     except OSError:
         pass
 
-
     @app.route('/', methods=['POST', 'GET'])
     def index():
         return(render_template('index.html'))
@@ -40,16 +40,18 @@ def create_app(test_config=None):
     def test():
         return render_template('test.html')
 
-    @app.route('/_download')
-    def download():
-        url = request.args.get('url')
+    @app.route('/_download/<string:req_type>')
+    def download(req_type="single"):
 
+        url = request.args.get('url')
         if url == "":
             return(render_template('index.html'))
+
 
         download_parent = config['download_dir']
         cachedir = config['cache_dir']
         downloadid = uuid.uuid4().hex
+
 
         downloaddir = download_parent + '/' + downloadid
 
@@ -57,38 +59,76 @@ def create_app(test_config=None):
             os.makedirs(cachedir)
 
         if not os.path.exists(downloaddir):
-            os.mkdir(downloaddir)
+            os.makedirs(downloaddir)
 
-        ydl_opts = {
-            'format': 'bestaudio/best',
-            'postprocessors': [{
-                'key': 'FFmpegExtractAudio',
-                'preferredcodec': 'mp3',
-                'preferredquality': '320',
-            }],
-            'logger': MyLogger(),
-            'progress_hooks': [my_hook],
-            'outtmpl': downloaddir + '/%(title)s.%(ext)s',
-        }
-        with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-            ydl.download([url])
-            ydl_info = ydl.extract_info(url, download=False)
+        if req_type.lower() == "single":
+            ydl_opts = {
+                'format': 'bestaudio/best',
+                'postprocessors': [{
+                    'key': 'FFmpegExtractAudio',
+                    'preferredcodec': 'mp3',
+                    'preferredquality': '320',
+                }],
+                'logger': MyLogger(),
+                'progress_hooks': [my_hook],
+                'outtmpl': downloaddir + '/%(title)s.%(ext)s',
+            }
 
-        if len(os.listdir(downloaddir)) == 1:
-            return jsonify({"downloadid" : downloadid, "ydl_info" : ydl_info})
+            with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+                ydl.download([url])
+                ydl_info = ydl.extract_info(url, download=False)
+
+            if len(os.listdir(downloaddir)) == 1:
+                return jsonify({"downloadid": downloadid, "ydl_info": ydl_info})
+            else:
+                raise "Invalid number of files in downloaddir"
+        elif req_type.lower() == "list":
+            # list_name = ""
+            # try:
+            #     list_name = request.args.get('list_name')
+            # except:
+            #     pass
+
+            # if list_name == "":
+            #     list_name = "list-" + downloadid
+
+            # list_download_dir = os.path.join(downloaddir, list_name)
+
+            # if not os.path.exists(list_download_dir):
+            #     os.makedirs(list_download_dir)
+
+            # ydl_opts = {
+            #     'format': 'bestaudio/best',
+            #     'postprocessors': [{
+            #         'key': 'FFmpegExtractAudio',
+            #         'preferredcodec': 'mp3',
+            #         'preferredquality': '320',
+            #     }],
+            #     'logger': MyLogger(),
+            #     'progress_hooks': [my_hook],
+            #     'outtmpl': list_download_dir + '/%(title)s.%(ext)s',
+            # }
+
+            # with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+            #     ydl.download([url])
+            #     ydl_info = ydl.extract_info(url, download=False)
+
+            # if len(os.listdir(downloaddir)) == 1:
+            #     return jsonify({"downloadid": downloadid, "ydl_info": ydl_info})
+
+            # TODO: handle post request with a json list of URLs
+            pass
         else:
-            raise "Invalid number of files in downloaddir"
+            print("Bad type : " + req_type)
+            return render_template('index.html')
 
-    
     @app.route('/getfile')
     def get_file():
         downloadid = request.args.get('downloadid')
         downloaddir = os.path.join(config['download_dir'], downloadid)
         if len(os.listdir(downloaddir)) == 1:
             file_name = os.listdir(downloaddir)[0]
-            return send_from_directory(downloaddir, file_name, as_attachment = True)
-
-
+            return send_from_directory(downloaddir, file_name, as_attachment=True)
 
     def my_hook(d):
         # download_perc = round(d['downloaded_bytes']*100 / d['total_bytes'])
@@ -103,7 +143,7 @@ def create_app(test_config=None):
         print(data)
 
         # return Response(data, mimetype= 'text/event-stream')
-        return jsonify({"perc" : download_perc})
+        return jsonify({"perc": download_perc})
 
     @app.route('/cleanup')
     def cleanup():
@@ -115,14 +155,13 @@ def create_app(test_config=None):
             # delete directories older than 2 minutes
             d = os.path.join(download_parent, file_name)
             if file_name != config['cache_dir'] \
-            and os.path.isdir(d)       \
-            and os.stat(d).st_mtime < (time.time() - (30*60)):
+                    and os.path.isdir(d)       \
+                    and os.stat(d).st_mtime < (time.time() - (30*60)):
                 delete_list.append(d)
                 shutil.rmtree(d)
 
         return(json.dumps(delete_list))
 
-    
     @app.route('/_getplaylistitems', methods=['POST', 'GET'])
     def get_playlist_items():
         # url = "https://music.youtube.com/playlist?list=OLAK5uy_m_Kjhx3wck_RmcJuPf0kLR60t4hpP65Pc"
@@ -137,13 +176,11 @@ def create_app(test_config=None):
         return ydl_info
         # return render_template('index.html', ydl_info=ydl_info)
 
-    
     @app.template_filter('sec_to_time')
     def sec_to_time(sec):
         return str(datetime.timedelta(seconds=sec))
 
     return app
-
 
 
 class MyLogger(object):
@@ -156,8 +193,7 @@ class MyLogger(object):
     def error(self, msg):
         print(msg)
 
+
 def my_hook(d):
     if d['status'] == 'finished':
         print('Done downloading, now converting ...')
-
-
