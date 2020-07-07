@@ -14,6 +14,7 @@ import time
 import atexit
 from slugify import slugify
 
+
 my_path = os.path.abspath(os.path.dirname(__file__))
 config_loc = os.path.join(my_path, "../config.json")
 
@@ -40,7 +41,7 @@ def create_app(test_config=None):
     def test():
         return render_template('test.html')
 
-    @app.route('/_download/<string:req_type>')
+    @app.route('/_download/<string:req_type>', methods=['GET', 'POST'])
     def download(req_type="single"):
 
         url = request.args.get('url')
@@ -61,66 +62,75 @@ def create_app(test_config=None):
         if not os.path.exists(downloaddir):
             os.makedirs(downloaddir)
 
-        if req_type.lower() == "single":
-            ydl_opts = {
-                'format': 'bestaudio/best',
-                'postprocessors': [{
-                    'key': 'FFmpegExtractAudio',
-                    'preferredcodec': 'mp3',
-                    'preferredquality': '320',
-                }],
-                'logger': MyLogger(),
-                'progress_hooks': [my_hook],
-                'outtmpl': downloaddir + '/%(title)s.%(ext)s',
-            }
+        if request.method == 'GET':
+            if req_type.lower() == "single":
+                ydl_opts = {
+                    'format': 'bestaudio/best',
+                    'postprocessors': [{
+                        'key': 'FFmpegExtractAudio',
+                        'preferredcodec': 'mp3',
+                        'preferredquality': '320',
+                    }],
+                    'logger': MyLogger(),
+                    'progress_hooks': [my_hook],
+                    'outtmpl': downloaddir + '/%(title)s.%(ext)s',
+                }
 
-            with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-                ydl.download([url])
-                ydl_info = ydl.extract_info(url, download=False)
+                with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+                    ydl.download([url])
+                    ydl_info = ydl.extract_info(url, download=False)
 
-            if len(os.listdir(downloaddir)) == 1:
-                return jsonify({"downloadid": downloadid, "ydl_info": ydl_info})
+                if len(os.listdir(downloaddir)) == 1:
+                    return jsonify({"downloadid": downloadid, "ydl_info": ydl_info})
+                else:
+                    raise "Invalid number of files in downloaddir"
+
+        elif request.method == 'POST':
+            if req_type.lower() == "list":
+                data = json.loads(request.data)
+                list_name = data['list_name']
+                list_items = data['list_items']
+
+                list_name = slugify(list_name, separator=' ', lowercase=False) # make name file system and URL safe
+                
+
+                list_download_dir = os.path.join(downloaddir, list_name)
+
+                if not os.path.exists(list_download_dir):
+                    os.makedirs(list_download_dir)
+
+                ydl_opts = {
+                    'format': 'bestaudio/best',
+                    'postprocessors': [{
+                        'key': 'FFmpegExtractAudio',
+                        'preferredcodec': 'mp3',
+                        'preferredquality': '320',
+                    }],
+                    'logger': MyLogger(),
+                    'progress_hooks': [my_hook],
+                    'outtmpl': list_download_dir + '/%(title)s.%(ext)s',
+                }
+
+                with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+                    ydl.download(list_items)
+
+                # if len(os.listdir(downloaddir)) == 1:
+                #     return jsonify({"downloadid": downloadid, "ydl_info": ydl_info})
+
+
+                zip_file_name = slugify(list_name)
+                zip_file_path = os.path.join(downloaddir, zip_file_name)
+                shutil.make_archive(zip_file_path, 'zip', list_download_dir)
+                shutil.rmtree(list_download_dir)
+                
+
+                return jsonify({"downloadid": downloadid, "filename": zip_file_name + ".zip"})
+
             else:
-                raise "Invalid number of files in downloaddir"
-        elif req_type.lower() == "list":
-            # list_name = ""
-            # try:
-            #     list_name = request.args.get('list_name')
-            # except:
-            #     pass
+                print("Bad type : " + req_type)
+                
+                return jsonify({"error":"something went wrong!"})
 
-            # if list_name == "":
-            #     list_name = "list-" + downloadid
-
-            # list_download_dir = os.path.join(downloaddir, list_name)
-
-            # if not os.path.exists(list_download_dir):
-            #     os.makedirs(list_download_dir)
-
-            # ydl_opts = {
-            #     'format': 'bestaudio/best',
-            #     'postprocessors': [{
-            #         'key': 'FFmpegExtractAudio',
-            #         'preferredcodec': 'mp3',
-            #         'preferredquality': '320',
-            #     }],
-            #     'logger': MyLogger(),
-            #     'progress_hooks': [my_hook],
-            #     'outtmpl': list_download_dir + '/%(title)s.%(ext)s',
-            # }
-
-            # with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-            #     ydl.download([url])
-            #     ydl_info = ydl.extract_info(url, download=False)
-
-            # if len(os.listdir(downloaddir)) == 1:
-            #     return jsonify({"downloadid": downloadid, "ydl_info": ydl_info})
-
-            # TODO: handle post request with a json list of URLs
-            pass
-        else:
-            print("Bad type : " + req_type)
-            return render_template('index.html')
 
     @app.route('/getfile')
     def get_file():
