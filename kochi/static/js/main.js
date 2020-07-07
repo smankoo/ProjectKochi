@@ -1,4 +1,38 @@
 $(function () {
+    $("input#ckball").change(function () {
+        if (this.checked) {
+            $(".ckbplaylistitem").each(function () {
+                this.checked = true;
+            });
+        } else {
+            $(".ckbplaylistitem").each(function () {
+                this.checked = false;
+            });
+        }
+        update_playlist_download_count();
+    });
+
+    $('body').on('click', '.ckbplaylistitem', function () {
+
+        if ($(this).is(":checked")) {
+            var isAllChecked = 0;
+
+            $(".ckbplaylistitem").each(function () {
+                if (!this.checked)
+                    isAllChecked = 1;
+            });
+
+            if (isAllChecked == 0) {
+                $("input#ckball").prop("checked", true);
+            }
+        }
+        else {
+            $("input#ckball").prop("checked", false);
+        }
+        update_playlist_download_count();
+    });
+
+
     $('a#download').bind('click', function () {
         // $("input#url").val("https://music.youtube.com/playlist?list=OLAK5uy_m_Kjhx3wck_RmcJuPf0kLR60t4hpP65Pc");
         $("#playlistdiv").hide();
@@ -52,7 +86,6 @@ function get_video(url) {
 }
 
 function get_playlist(url) {
-    console.log("fired")
     console.log("url: " + url);
 
 
@@ -72,11 +105,7 @@ function get_playlist(url) {
             var item = entries[i];
 
             row = "<tr>";
-            col = "<td> \
-                    <div class=\"form-check\"> \
-                        <input class=\"form-check-input\" type=\"checkbox\" id=\"ckb" + item['playlist_index'] + "\" value=\"playlist_index" + item['playlist_index'] + " \"> \
-                    </div>\
-                    </td>";
+            col = "<td><input type=\"checkbox\" class=\"ckbplaylistitem\" id=\"ckb" + item['playlist_index'] + "\" value=\"playlist_index" + item['playlist_index'] + " \"></td>";
 
             row += col;
             row += "<td>" + item['playlist_index'] + "</td>"
@@ -93,6 +122,17 @@ function get_playlist(url) {
             }
 
             row += "<td>" + durationPretty + "</td>";
+            row += "<td> \
+                        <a href=\"#\" id=\"download" + item['playlist_index'] + "\"> \
+                            <button role=\"button\" class=\"btn btn-primary\" type=\"button\" id=\"downloadbutton" + item['playlist_index'] + "\"  > \
+                                <span class=\"spinner-border spinner-border-sm\" id=\"loadingspinner" + item['playlist_index'] + "\" role=\"status\" aria-hidden=\"true\" \
+                                    style=\"display: none;\"></span> \
+                                <span id=\"downloadbuttontext" + item['playlist_index'] + "\"> \
+                                    <i class=\"material-icons\">get_app</i> \
+                                </span> \
+                            </button> \
+                        </a> \
+                    </td>";
             row += "</tr>";
 
             $('#playlisttable').append(row);
@@ -100,10 +140,14 @@ function get_playlist(url) {
         }
 
         set_button_normal();
+        $('button#downloadbutton').addClass('btn-secondary').removeClass('btn-primary');
+        $(".ckbplaylistitem").prop("checked", true);
+        $("input#ckball").prop("checked", true);
+        update_playlist_download_count();
+        $("button#downloadplaylistbutton").focus();
 
     });
 
-    console.log("fired2")
 }
 
 function isHidden(el) {
@@ -136,13 +180,13 @@ function set_button_normal() {
     $("button#downloadbutton").prop("disabled", false);
 }
 
-var bartimer
-function start_progress_bar() {
-    $('.progress-bar').css('width', 0 + '%').attr('aria-valuenow', 0);
-    $('.progress-bar-label').text(0 + '%');
-    $("#progressdiv").show();
-    bartimer = setInterval(update_progress_bar, 100);
-}
+// var bartimer
+// function start_progress_bar() {
+//     $('.progress-bar').css('width', 0 + '%').attr('aria-valuenow', 0);
+//     $('.progress-bar-label').text(0 + '%');
+//     $("#progressdiv").show();
+//     bartimer = setInterval(update_progress_bar, 100);
+// }
 
 function update_progress_bar() {
     $.getJSON('/_getprogress', {}, function (data) {
@@ -161,3 +205,31 @@ function update_progress_bar() {
 function show_playlist() {
     $("#playlistdiv").show();
 }
+
+function update_playlist_download_count() {
+    var checkedCount = 0;
+    $(".ckbplaylistitem").each(function () {
+        if (this.checked) {
+            checkedCount += 1;
+        }
+    });
+    console.log("Download Count : " + checkedCount);
+    $("span#downloadplaylistbuttontext").text("Download (" + checkedCount + ")");
+}
+
+// function check_all() {
+//     $(".ckbplaylistitem").each(function () {
+//         this.prop("checked", true);
+//     });
+// }
+
+// function ckball() {
+//     if ($("input#ckball").is(':checked')) {
+//         console.log("Checked All");
+//         $(".ckbplaylistitem").each(function () {
+//             this.prop('checked', true);
+//         });
+//     } else {
+//         console.log("Unchecked All");
+//     }
+// }

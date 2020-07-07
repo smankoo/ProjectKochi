@@ -43,6 +43,11 @@
     <div>
       <a href="#" id="downloadlink">Download</a>
     </div>
+
+
+    
+
+
   </div>
 
   <!-- <form>
@@ -53,13 +58,27 @@
     </a>
   </form> -->
 
-  <div id="playlistdiv" style="text-align: center; margin: 50px; display: none;">
+  <div id="playlistdiv" style="text-align: center; margin-top: 50px; display: none;">
+    <div class="input-group mb-3">
+      <h3 id="playlisttitle" style="margin-right: auto; margin-left: auto;">Playlist Title</h3>
+      <div class="input-group-append">
+        <a href="#" id="downloadPlaylist">
+          <button role="button" class="btn btn-primary" type="button" id="downloadplaylistbutton" style="width: 200px;">
+            <span class="spinner-border spinner-border-sm" id="loadingspinnerplaylist" role="status" aria-hidden="true"
+              style="display: none;"></span>
+            <span id="downloadplaylistbuttontext">
+              Download (0)
+            </span>
+          </button>
+        </a>
+      </div>
+    </div>
 
-    <h3 id="playlisttitle" style="margin: 50px;">Playlist Title</h3>
+    
     <table id="playlisttable" class="table table-striped">
       <thead>
         <tr>
-          <th scope="col"></th>
+          <th><input type="checkbox" id="ckball"></th>
           <th scope="col">#</th>
           <th scope="col">Thumbnail</th>
           <th scope="col">Title</th>
