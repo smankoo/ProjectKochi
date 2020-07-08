@@ -196,6 +196,8 @@ function get_playlist(url) {
 
     });
 
+    $.get($SCRIPT_ROOT + '/cleanup')
+
 }
 
 function isHidden(el) {
