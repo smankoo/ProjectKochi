@@ -65,6 +65,45 @@ $(function () {
         get_video(url, $(this).prop("id"));
     });
 
+    $('a#downloadPlaylist').bind('click', function () {
+        set_button_loading($(this).prop("id"));
+
+        var data = {};
+        data['list_items'] = [];
+        data['list_name'] = $("#playlisttitle").text();
+        i=0;
+        $(".ckbplaylistitem").each(function () {
+            if (this.checked) {
+                ckbid = $(this).prop("id");
+                itemid = ckbid.replace("ckb", "");
+                url = $("#downloadbutton" + itemid).attr("url");
+                data['list_items'][i] = url;
+                i += 1;
+            }
+        });
+
+        $.ajax({
+            type: "POST",
+            url: '/_download/list',
+            data: JSON.stringify(data),
+            contentType: "application/json",
+            success: function(response) {
+                console.log(response);
+                $currloc = window.location.href.split('?')[0].split('#')[0];
+                $("a#downloadlink").attr("href", $currloc + 'getfile?downloadid=' + response.downloadid);
+                $("a#downloadlink").text($("#playlisttitle").text());
+                $("div#downloadlinkdiv").show();
+                set_button_normal("downloadPlaylist");
+                window.location.href = $currloc + 'getfile?downloadid=' + response.downloadid
+            }
+        });
+
+        // $.post($SCRIPT_ROOT + '/_download/list', {"data" : data}, function (retdata) {
+        //     console.log(retdata.downloadid + ":::" + retdata.filename);
+
+        // });
+
+    });
 
 });
 
@@ -163,55 +202,47 @@ function isHidden(el) {
     return (el.offsetParent === null)
 }
 
-// function start_progress_bar() {
-//   $("#progressdiv").show();
-//   var source = new EventSource("/_progress");
-//   source.onmessage = function (event) {
-//     $('.progress-bar').css('width', event.data + '%').attr('aria-valuenow', event.data);
-//     $('.progress-bar-label').text(event.data + '%');
-
-//     if (event.data == 100) {
-//       source.close()
-//     }
-//   }
-// }
-
 function set_button_loading(btnid="") {
-    var itemid = 0;
-    itemid = btnid.replace("downloadbutton", "");
-    if(itemid != 0) {
-        $("span#loadingspinner"+itemid).show();
-        $("span#downloadbuttontext"+itemid).hide();
-        $("button#downloadbutton"+itemid).prop("disabled", true);
+    if(btnid == "downloadplaylistbutton" || btnid == "downloadPlaylist" ) {
+        $("span#loadingspinnerplaylist").show();
+        $("span#downloadplaylistbuttontext").text("Downloading...");
+        $("button#downloadplaylistbutton").prop("disabled", true);
     } else {
-        $("span#loadingspinner").show();
-        $("span#downloadbuttontext").text("Downloading...");
-        $("button#downloadbutton").prop("disabled", true);
+        var itemid = 0;
+        itemid = btnid.replace("downloadbutton", "");
+        if(itemid != 0) {
+            $("span#loadingspinner"+itemid).show();
+            $("span#downloadbuttontext"+itemid).hide();
+            $("button#downloadbutton"+itemid).prop("disabled", true);
+        } else {
+            $("span#loadingspinner").show();
+            $("span#downloadbuttontext").text("Downloading...");
+            $("button#downloadbutton").prop("disabled", true);
+        }
     }
 }
 
 function set_button_normal(btnid="") {
-    var itemid = 0;
-    itemid = btnid.replace("downloadbutton", "");
-    if(itemid != 0) {
-        $("span#loadingspinner"+itemid).hide();
-        $("span#downloadbuttontext"+itemid).show();
-        $("button#downloadbutton"+itemid).prop("disabled", false);
+    if(btnid == "downloadplaylistbutton" || btnid == "downloadPlaylist" ) {
+        $("span#loadingspinnerplaylist").hide();
+        update_playlist_download_count();
+        $("button#downloadplaylistbutton").prop("disabled", false);
     } else {
-        $("span#loadingspinner").hide();
-        $("span#downloadbuttontext").text("Download");
-        $("button#downloadbutton").prop("disabled", false);
+        var itemid = 0;
+        itemid = btnid.replace("downloadbutton", "");
+        if(itemid != 0) {
+            $("span#loadingspinner"+itemid).hide();
+            $("span#downloadbuttontext"+itemid).show();
+            $("button#downloadbutton"+itemid).prop("disabled", false);
+        } else {
+            $("span#loadingspinner").hide();
+            $("span#downloadbuttontext").text("Download");
+            $("button#downloadbutton").prop("disabled", false);
+        }
     }
    
 }
 
-// var bartimer
-// function start_progress_bar() {
-//     $('.progress-bar').css('width', 0 + '%').attr('aria-valuenow', 0);
-//     $('.progress-bar-label').text(0 + '%');
-//     $("#progressdiv").show();
-//     bartimer = setInterval(update_progress_bar, 100);
-// }
 
 function update_progress_bar() {
     $.getJSON('/_getprogress', {}, function (data) {
@@ -241,20 +272,3 @@ function update_playlist_download_count() {
     console.log("Download Count : " + checkedCount);
     $("span#downloadplaylistbuttontext").text("Download (" + checkedCount + ")");
 }
-
-// function check_all() {
-//     $(".ckbplaylistitem").each(function () {
-//         this.prop("checked", true);
-//     });
-// }
-
-// function ckball() {
-//     if ($("input#ckball").is(':checked')) {
-//         console.log("Checked All");
-//         $(".ckbplaylistitem").each(function () {
-//             this.prop('checked', true);
-//         });
-//     } else {
-//         console.log("Unchecked All");
-//     }
-// }

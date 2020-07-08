@@ -43,12 +43,6 @@ def create_app(test_config=None):
 
     @app.route('/_download/<string:req_type>', methods=['GET', 'POST'])
     def download(req_type="single"):
-
-        url = request.args.get('url')
-        if url == "":
-            return(render_template('index.html'))
-
-
         download_parent = config['download_dir']
         cachedir = config['cache_dir']
         downloadid = uuid.uuid4().hex
@@ -63,7 +57,13 @@ def create_app(test_config=None):
             os.makedirs(downloaddir)
 
         if request.method == 'GET':
+            
             if req_type.lower() == "single":
+                url = request.args.get('url')
+
+                if url is None or url == "":
+                    return jsonify({"error":"empty URL passed"})
+
                 ydl_opts = {
                     'format': 'bestaudio/best',
                     'postprocessors': [{
@@ -87,7 +87,9 @@ def create_app(test_config=None):
 
         elif request.method == 'POST':
             if req_type.lower() == "list":
-                data = json.loads(request.data)
+                # data = json.loads(request.data)
+                # data = data['{"list_name":"Raavan","list_items":["https://www.youtube.com/watch?v']
+                data = request.json
                 list_name = data['list_name']
                 list_items = data['list_items']
 
@@ -118,13 +120,15 @@ def create_app(test_config=None):
                 #     return jsonify({"downloadid": downloadid, "ydl_info": ydl_info})
 
 
-                zip_file_name = slugify(list_name)
+                zip_file_name = slugify(list_name) + ".zip"
                 zip_file_path = os.path.join(downloaddir, zip_file_name)
-                shutil.make_archive(zip_file_path, 'zip', list_download_dir)
+                # shutil.make_archive(zip_file_path, 'zip', downloaddir, zip_file_name)
+                
+                make_archive(list_download_dir, zip_file_path)
                 shutil.rmtree(list_download_dir)
                 
 
-                return jsonify({"downloadid": downloadid, "filename": zip_file_name + ".zip"})
+                return jsonify({"downloadid": downloadid, "filename": zip_file_name})
 
             else:
                 print("Bad type : " + req_type)
@@ -207,3 +211,13 @@ class MyLogger(object):
 def my_hook(d):
     if d['status'] == 'finished':
         print('Done downloading, now converting ...')
+
+def make_archive(source, destination):
+        base = os.path.basename(destination)
+        name = base.split('.')[0]
+        format = base.split('.')[1]
+        archive_from = os.path.dirname(source)
+        archive_to = os.path.basename(source.strip(os.sep))
+        print(source, destination, archive_from, archive_to)
+        shutil.make_archive(name, format, archive_from, archive_to)
+        shutil.move('%s.%s'%(name,format), destination)
