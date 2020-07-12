@@ -6,7 +6,7 @@ jobs:
     steps:
       - checkout
       - run: mkdir test-reports
-      - run: sudo apt install ffmpeg -y
+      - run: sudo apt update && sudo apt install ffmpeg -y
       - restore_cache:
           key: deps2-{{ .Branch }}-{{ checksum "requirements.txt" }}
       - run:

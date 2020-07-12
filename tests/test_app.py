@@ -23,6 +23,7 @@ def test_index(client):
 def test_download(client):
     data = {"url":"https://www.youtube.com/watch?v=P5joP3Ba4cQ"}
     response1 = client.get('/_download/single', query_string = data)
+    print(response1)
     json_data = response1.get_json()
     downloadid = json_data['downloadid']
     response2 = client.get('/api/getfile/' + downloadid)
