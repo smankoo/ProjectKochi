@@ -8,7 +8,6 @@ import time
 import shutil
 import datetime
 
-
 from flask import Flask, render_template, request, redirect, send_from_directory, url_for, Response, jsonify
 from slugify import slugify
 
@@ -207,7 +206,7 @@ def create_app(test_config=None):
 
     
 
-################3
+################
 
     return app
 
