@@ -8,11 +8,23 @@ import time
 import shutil
 import datetime
 
+
 from flask import Flask, render_template, request, redirect, send_from_directory, url_for, Response, jsonify
+from slugify import slugify
 
 import time
 import atexit
-from slugify import slugify
+
+from rq import Queue
+from rq.job import Job
+import rq_dashboard
+
+from kochi.worker import conn
+from kochi.worker import redis_url
+from kochi.utils import MyLogger
+from kochi.utils import _youtubedl_progress_hook
+from kochi.utils import make_archive
+from kochi.utils import _youtubedl
 
 
 my_path = os.path.abspath(os.path.dirname(__file__))
@@ -135,7 +147,6 @@ def create_app(test_config=None):
                 
                 return jsonify({"error":"something went wrong!"})
 
-
     @app.route('/getfile')
     def get_file():
         downloadid = request.args.get('downloadid')
@@ -194,30 +205,59 @@ def create_app(test_config=None):
     def sec_to_time(sec):
         return str(datetime.timedelta(seconds=sec))
 
+
+
+#################
+
+    # Views
+
+
+    app.config.from_object(rq_dashboard.default_settings) # set default settings for rq-dashboard
+    app.config.update(REDIS_URL=redis_url) # Set URL of Redis server being used by Redis Queue
+    app.register_blueprint(rq_dashboard.blueprint, url_prefix="/api/rqstatus") # Register flask blueprint with prefix /rqstatus
+
+
+    @app.route('/api/trigger_download', methods=['POST'])
+    def trigger_download():
+        retdata = {}
+
+        list_name = request.json.get('list_name')
+        url_list = request.json.get('url_list')
+
+        q = Queue(connection=conn)
+        job_id = str(uuid.uuid4().hex)
+        job = q.enqueue(_youtubedl, job_id, list_name, url_list, config, job_id=job_id, description=list_name)
+        # _youtubedl(job_id, list_name, url_list)
+
+        download_id = str(job_id)
+        retdata['download_id'] = download_id
+
+        return retdata
+
+    @app.route('/api/get_download_status', methods=['POST'])
+    def get_download_status():
+        retdata = {}
+
+        download_id = request.json.get('download_id')
+
+        job = Job.fetch(download_id, connection=conn)
+        job_status = job.get_status()
+
+        retdata['job_status'] = job_status
+
+        return retdata
+
+    @app.route('/api/get_file_status', methods=['POST'])
+    def get_file_status():
+        retdata = {}
+
+        return retdata
+
+    
+
+################3
+
     return app
 
 
-class MyLogger(object):
-    def debug(self, msg):
-        pass
 
-    def warning(self, msg):
-        pass
-
-    def error(self, msg):
-        print(msg)
-
-
-def my_hook(d):
-    if d['status'] == 'finished':
-        print('Done downloading, now converting ...')
-
-def make_archive(source, destination):
-        base = os.path.basename(destination)
-        name = base.split('.')[0]
-        format = base.split('.')[1]
-        archive_from = os.path.dirname(source)
-        archive_to = os.path.basename(source.strip(os.sep))
-        print(source, destination, archive_from, archive_to)
-        shutil.make_archive(name, format, archive_from, archive_to)
-        shutil.move('%s.%s'%(name,format), destination)
