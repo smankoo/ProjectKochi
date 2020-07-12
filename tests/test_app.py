@@ -22,10 +22,10 @@ def test_index(client):
 
 def test_download(client):
     data = {"url":"https://www.youtube.com/watch?v=P5joP3Ba4cQ"}
-    response1 = client.get('/_download', query_string = data)
+    response1 = client.get('/_download/single', query_string = data)
     json_data = response1.get_json()
     downloadid = json_data['downloadid']
-    response2 = client.get('/getfile?downloadid=' + downloadid)
+    response2 = client.get('/api/getfile/' + downloadid)
 
     assert response2 is not None
     assert response2.status_code == 200
@@ -35,10 +35,10 @@ def test_download(client):
 
 def test_download_music(client):
     data = {"url":"https://music.youtube.com/watch?v=AjQzgbVYUjw&feature=share"}
-    response1 = client.get('/_download', query_string = data)
+    response1 = client.get('/_download/single', query_string = data)
     json_data = response1.get_json()
     downloadid = json_data['downloadid']
-    response2 = client.get('/getfile?downloadid=' + downloadid)
+    response2 = client.get('/api/getfile/' + downloadid)
 
     assert response2 is not None
     assert response2.status_code == 200
