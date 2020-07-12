@@ -8,7 +8,7 @@ gunicorn==20.0.4
 isort==4.3.21
 itsdangerous==1.1.0
 Jinja2==2.11.2
--e git+https://github.com/smankoo/ProjectKochi.git@46f556d129f9e70bd6ffe12318bd33bea5225228#egg=kochi
+-e git+https://github.com/smankoo/ProjectKochi.git@92d06b9d7ea8c618e8bfdba479acd50869305c64#egg=kochi
 lazy-object-proxy==1.4.3
 MarkupSafe==1.1.1
 mccabe==0.6.1
