@@ -164,8 +164,8 @@ def create_app(test_config=None):
 
 
     app.config.from_object(rq_dashboard.default_settings) # set default settings for rq-dashboard
-    app.config.update(REDIS_URL=redis_url) # Set URL of Redis server being used by Redis Queue
-    app.register_blueprint(rq_dashboard.blueprint, url_prefix="/api/rqstatus") # Register flask blueprint with prefix /rqstatus
+    app.config.update(RQ_DASHBOARD_REDIS_URL=redis_url) # Set URL of Redis server being used by Redis Queue
+    app.register_blueprint(rq_dashboard.blueprint, url_prefix="/rqstatus") # Register flask blueprint with prefix /rqstatus
 
 
     @app.route('/api/trigger_download', methods=['POST'])
