@@ -97,56 +97,6 @@ def create_app(test_config=None):
                 else:
                     raise "Invalid number of files in downloaddir"
 
-        elif request.method == 'POST':
-            if req_type.lower() == "list":
-                # data = json.loads(request.data)
-                # data = data['{"list_name":"Raavan","list_items":["https://www.youtube.com/watch?v']
-                data = request.json
-                list_name = data['list_name']
-                list_items = data['list_items']
-
-                list_name = slugify(list_name, separator=' ', lowercase=False) # make name file system and URL safe
-                
-
-                list_download_dir = os.path.join(downloaddir, list_name)
-
-                if not os.path.exists(list_download_dir):
-                    os.makedirs(list_download_dir)
-
-                ydl_opts = {
-                    'format': 'bestaudio/best',
-                    'postprocessors': [{
-                        'key': 'FFmpegExtractAudio',
-                        'preferredcodec': 'mp3',
-                        'preferredquality': '320',
-                    }],
-                    'logger': MyLogger(),
-                    'progress_hooks': [my_hook],
-                    'outtmpl': list_download_dir + '/%(title)s.%(ext)s',
-                }
-
-                with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-                    ydl.download(list_items)
-
-                # if len(os.listdir(downloaddir)) == 1:
-                #     return jsonify({"downloadid": downloadid, "ydl_info": ydl_info})
-
-
-                zip_file_name = slugify(list_name) + ".zip"
-                zip_file_path = os.path.join(downloaddir, zip_file_name)
-                # shutil.make_archive(zip_file_path, 'zip', downloaddir, zip_file_name)
-                
-                make_archive(list_download_dir, zip_file_path)
-                shutil.rmtree(list_download_dir)
-                
-
-                return jsonify({"downloadid": downloadid, "filename": zip_file_name})
-
-            else:
-                print("Bad type : " + req_type)
-                
-                return jsonify({"error":"something went wrong!"})
-
 
     @app.route('/api/getfile/<string:download_id>')
     def get_file(download_id):

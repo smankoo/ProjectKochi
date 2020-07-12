@@ -124,12 +124,12 @@ function get_video(url, btnid="") {
     }, function (data) {
         $currloc = window.location.href.split('?')[0].split('#')[0];
         // alert($currloc + 'getfile?downloadid=' + data.downloadid);
-        $("a#downloadlink").attr("href", $currloc + 'getfile?downloadid=' + data.downloadid);
+        $("a#downloadlink").attr("href", $currloc + '/api/getfile/' + data.downloadid);
         $("a#downloadlink").text(data.ydl_info['title']);
         $("div#downloadlinkdiv").show();
         $('.progress-bar-label').text("Done");
         set_button_normal(btnid);
-        window.location.href = $currloc + 'getfile?downloadid=' + data.downloadid
+        window.location.href = $currloc + '/api/getfile/' + data.downloadid
     });
 
     $.get($SCRIPT_ROOT + '/cleanup')
