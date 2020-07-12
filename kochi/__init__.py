@@ -147,10 +147,11 @@ def create_app(test_config=None):
                 
                 return jsonify({"error":"something went wrong!"})
 
-    @app.route('/getfile')
-    def get_file():
-        downloadid = request.args.get('downloadid')
-        downloaddir = os.path.join(config['download_dir'], downloadid)
+
+    @app.route('/api/getfile/<string:download_id>')
+    def get_file(download_id):
+        # downloadid = request.args.get('downloadid')
+        downloaddir = os.path.join(config['download_dir'], download_id)
         if len(os.listdir(downloaddir)) == 1:
             file_name = os.listdir(downloaddir)[0]
             return send_from_directory(downloaddir, file_name, as_attachment=True)
@@ -245,13 +246,14 @@ def create_app(test_config=None):
 
         retdata['job_status'] = job_status
 
-        return retdata
-
-    @app.route('/api/get_file_status', methods=['POST'])
-    def get_file_status():
-        retdata = {}
+        if job_status == "finished":
+            retdata['download_url'] = _get_download_url(download_id)
 
         return retdata
+
+    def _get_download_url(download_id):
+        donwload_url = url_for('get_file', download_id=download_id, _external=True)
+        return donwload_url
 
     
 

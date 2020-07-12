@@ -60,7 +60,7 @@ $(function () {
 
     $('body').on('click', '.btnplaylistitemdownload', function () {
         var url = $(this).attr("url");
-        console.log("Clicked : " + url);
+        // console.log("Clicked : " + url);
         set_button_loading($(this).prop("id"));
         get_video(url, $(this).prop("id"));
     });
@@ -69,7 +69,7 @@ $(function () {
         set_button_loading($(this).prop("id"));
 
         var data = {};
-        data['list_items'] = [];
+        data['url_list'] = [];
         data['list_name'] = $("#playlisttitle").text();
         i=0;
         $(".ckbplaylistitem").each(function () {
@@ -77,32 +77,37 @@ $(function () {
                 ckbid = $(this).prop("id");
                 itemid = ckbid.replace("ckb", "");
                 url = $("#downloadbutton" + itemid).attr("url");
-                data['list_items'][i] = url;
+                data['url_list'][i] = url;
                 i += 1;
             }
         });
 
         $.ajax({
             type: "POST",
-            url: '/_download/list',
+            url: '/api/trigger_download',
             data: JSON.stringify(data),
             contentType: "application/json",
             success: function(response) {
                 console.log(response);
-                $currloc = window.location.href.split('?')[0].split('#')[0];
-                $("a#downloadlink").attr("href", $currloc + 'getfile?downloadid=' + response.downloadid);
-                $("a#downloadlink").text($("#playlisttitle").text());
-                $("div#downloadlinkdiv").show();
-                set_button_normal("downloadPlaylist");
-                window.location.href = $currloc + 'getfile?downloadid=' + response.downloadid
+                schedule_status_updates(response['download_id']);
+
+                // $currloc = window.location.href.split('?')[0].split('#')[0];
+                // $("a#downloadlink").attr("href", $currloc + 'getfile?downloadid=' + response.downloadid);
+                // $("a#downloadlink").text($("#playlisttitle").text());
+                // $("div#downloadlinkdiv").show();
+                // set_button_normal("downloadPlaylist");
+                // window.location.href = $currloc + 'getfile?downloadid=' + response.downloadid
             }
         });
 
-        // $.post($SCRIPT_ROOT + '/_download/list', {"data" : data}, function (retdata) {
-        //     console.log(retdata.downloadid + ":::" + retdata.filename);
 
+        // v2 async
+
+        // $.post("/api/trigger_download", JSON.stringify(data), function(result){
+        //     console.log(result);
+        //     set_button_normal("downloadPlaylist");
         // });
-
+        
     });
 
 });
@@ -142,7 +147,7 @@ function get_playlist(url) {
     $.getJSON($SCRIPT_ROOT + '/_getplaylistitems', {
         "url": url
     }, function (ydl_info) {
-        console.log(ydl_info);
+        // console.log(ydl_info);
         $("#playlisttitle").text(ydl_info['title']);
         $("#playlistdiv").show();
 
@@ -271,6 +276,65 @@ function update_playlist_download_count() {
             checkedCount += 1;
         }
     });
-    console.log("Download Count : " + checkedCount);
+    // console.log("Download Count : " + checkedCount);
     $("span#downloadplaylistbuttontext").text("Download (" + checkedCount + ")");
+}
+
+var status_update_job
+function schedule_status_updates(download_id) {
+//   $('.progress-bar').css('width', 0 + '%').attr('aria-valuenow', 0);
+//   $('.progress-bar-label').text(0 + '%');
+//   $("#progressdiv").show();
+  status_update_job = setInterval(function(){
+    update_download_status(download_id)
+  }, 1000);
+}
+
+function update_download_status(download_id) {
+    // console.log("called update_download_status");
+    var data = {};
+    data['download_id'] = download_id;
+    $.ajax({
+        type: "POST",
+        url: '/api/get_download_status',
+        data: JSON.stringify(data),
+        contentType: "application/json",
+        success: function(response) {
+            // console.log(response);
+            download_status = response['job_status'];
+
+            if($("div#downloadlinkdiv").is(":hidden")){
+                $("div#downloadlinkdiv").show();
+            }
+            if(download_status != "finished" && download_status !="failed"){
+                // console.log("download_status is: " + download_status);
+                $("a#downloadlink").text(download_status);
+            } else if(download_status == "finished"){
+                download_url = response['download_url'];
+                $("a#downloadlink").attr("href", download_url);
+                $("a#downloadlink").text($("#playlisttitle").text());
+                clearInterval(status_update_job);
+                set_button_normal("downloadPlaylist");
+                window.location.href = download_url;
+            } else if(download_status == "failed"){
+                $("a#downloadlink").text("Download Failed");
+                clearInterval(status_update_job);
+                set_button_normal("downloadPlaylist");
+            } else {
+                $("a#downloadlink").text("Download Failed");
+                clearInterval(status_update_job);
+                set_button_normal("downloadPlaylist");
+            }
+            
+            // set_button_normal("downloadPlaylist");
+
+            // $currloc = window.location.href.split('?')[0].split('#')[0];
+            // $("a#downloadlink").attr("href", $currloc + 'getfile?downloadid=' + response.downloadid);
+            // $("a#downloadlink").text($("#playlisttitle").text());
+            // $("div#downloadlinkdiv").show();
+            // set_button_normal("downloadPlaylist");
+            // window.location.href = $currloc + 'getfile?downloadid=' + response.downloadid
+        }
+    });
+
 }
