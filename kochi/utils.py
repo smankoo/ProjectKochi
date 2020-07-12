@@ -2,6 +2,7 @@ import os
 import shutil
 from slugify import slugify
 import youtube_dl
+from kochi.utils_aws import save_download_to_bucket
 
 def _youtubedl(download_id, list_name, list_items, config):
 
@@ -49,6 +50,8 @@ def _youtubedl(download_id, list_name, list_items, config):
     
     make_archive(list_download_dir, zip_file_path)
     shutil.rmtree(list_download_dir)
+
+    save_download_to_bucket(download_id)
     
     retdata = {"download_id": download_id, "filename": zip_file_name}
 

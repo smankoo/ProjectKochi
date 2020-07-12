@@ -24,6 +24,7 @@ from kochi.utils import MyLogger
 from kochi.utils import _youtubedl_progress_hook
 from kochi.utils import make_archive
 from kochi.utils import _youtubedl
+from kochi.utils_aws import get_s3_download_url
 
 
 my_path = os.path.abspath(os.path.dirname(__file__))
@@ -201,8 +202,9 @@ def create_app(test_config=None):
         return retdata
 
     def _get_download_url(download_id):
-        donwload_url = url_for('get_file', download_id=download_id, _external=True)
-        return donwload_url
+        # donwload_url = url_for('get_file', download_id=download_id, _external=True)
+        download_url = get_s3_download_url(download_id)
+        return download_url
 
     
 

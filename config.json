@@ -1,4 +1,6 @@
 {
     "download_dir" : "/tmp/kochi",
-    "cache_dir" : "/tmp/kochi/.cache"
+    "cache_dir" : "/tmp/kochi/.cache",
+    "download_bucket": "projectkochi-downloads",
+    "bucket_path": "downloads"
 }

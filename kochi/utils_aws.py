@@ -3,17 +3,25 @@ import logging
 import boto3
 import datetime
 from botocore.exceptions import ClientError
+import json
 # from config import config
 
-local_file_path = "/tmp/test.txt"
-bucket_name = "projectkochi-downloads"
-bucket_path = "downloads"
+my_path = os.path.abspath(os.path.dirname(__file__))
+config_loc = os.path.join(my_path, "../config.json")
+
+with open(config_loc, 'r') as config_file:
+    data = config_file.read()
+
+config = json.loads(data)
+
 
 def get_s3_path(download_id):
-    object_name = "/".join([bucket_path, download_id])
+    bucket_path = config['bucket_path']
+    d = str(datetime.date.today())
+    object_name = "/".join([bucket_path, d, download_id])
     return object_name
 
-def save_file_to_bucket(download_id, local_file_path):
+def save_download_to_bucket(download_id):
     """Upload downloaded file to an S3 bucket
 
     :param download_id: id under which the download should be uploaded
@@ -21,11 +29,20 @@ def save_file_to_bucket(download_id, local_file_path):
     :return: True if file was uploaded, else False
     """
 
-    file_name = os.path.basename(local_file_path)
+    bucket_name = config['download_bucket']
+    download_dir = config['download_dir']
 
-    # d = str(datetime.date.today())
+    local_file_dir = os.path.join(download_dir, download_id)
 
-    object_name = get_s3_path(download_id) + '/' + file_name
+    dir_contents = os.listdir(local_file_dir)
+    if len(dir_contents) != 1:
+        return False
+    
+    local_file_name = dir_contents[0]
+
+    local_file_path = os.path.join(local_file_dir, local_file_name)
+
+    object_name = get_s3_path(download_id) + '/' + local_file_name
 
     # Upload the file
     s3_client = boto3.client('s3')
@@ -37,7 +54,9 @@ def save_file_to_bucket(download_id, local_file_path):
         return False
     return True
 
-def get_download_url(download_id):
+def get_s3_download_url(download_id):
+
+    bucket_name = config['download_bucket']
 
     s3_path = get_s3_path(download_id)
 
@@ -56,9 +75,10 @@ def get_download_url(download_id):
 
 
 if __name__ == '__main__':
+    download_id = "0459f08d1cdd4418ae211800d8d38e8e"
     print("uploading file...")
-    save_file_to_bucket("xxxxxx", local_file_path)
+    save_download_to_bucket(download_id)
     print("upload complete.")
     print("downloading file...")
-    print(get_download_url("xxxxxx"))
+    print(get_download_url(download_id))
     print("download complete.")
