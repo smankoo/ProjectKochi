@@ -1,4 +1,4 @@
-sudo apt install python3 python3-pip python3-venv -y
+sudo yum install python3 python3-pip awscli -y && \
 python3 -m venv venv --prompt kochi && \
 . venv/bin/activate && \
 pip3 install wheel && \

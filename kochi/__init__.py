@@ -59,7 +59,6 @@ def create_app(test_config=None):
         cachedir = config['cache_dir']
         downloadid = uuid.uuid4().hex
 
-
         downloaddir = download_parent + '/' + downloadid
 
         if not os.path.exists(cachedir):
@@ -69,12 +68,12 @@ def create_app(test_config=None):
             os.makedirs(downloaddir)
 
         if request.method == 'GET':
-            
+
             if req_type.lower() == "single":
                 url = request.args.get('url')
 
                 if url is None or url == "":
-                    return jsonify({"error":"empty URL passed"})
+                    return jsonify({"error": "empty URL passed"})
 
                 ydl_opts = {
                     'format': 'bestaudio/best',
@@ -82,7 +81,10 @@ def create_app(test_config=None):
                         'key': 'FFmpegExtractAudio',
                         'preferredcodec': 'mp3',
                         'preferredquality': '320',
-                    }],
+                        },
+                        {'key': 'EmbedThumbnail'},
+                        {'key': 'FFmpegMetadata'},
+                    ],
                     'logger': MyLogger(),
                     'progress_hooks': [my_hook],
                     'outtmpl': downloaddir + '/%(title)s.%(ext)s',
@@ -96,7 +98,6 @@ def create_app(test_config=None):
                     return jsonify({"downloadid": downloadid, "ydl_info": ydl_info})
                 else:
                     raise "Invalid number of files in downloaddir"
-
 
     @app.route('/api/getfile/<string:download_id>')
     def get_file(download_id):
@@ -157,16 +158,16 @@ def create_app(test_config=None):
         return str(datetime.timedelta(seconds=sec))
 
 
-
 #################
 
     # Views
 
-
-    app.config.from_object(rq_dashboard.default_settings) # set default settings for rq-dashboard
-    app.config.update(RQ_DASHBOARD_REDIS_URL=redis_url) # Set URL of Redis server being used by Redis Queue
-    app.register_blueprint(rq_dashboard.blueprint, url_prefix="/rqstatus") # Register flask blueprint with prefix /rqstatus
-
+    # set default settings for rq-dashboard
+    app.config.from_object(rq_dashboard.default_settings)
+    # Set URL of Redis server being used by Redis Queue
+    app.config.update(RQ_DASHBOARD_REDIS_URL=redis_url)
+    # Register flask blueprint with prefix /rqstatus
+    app.register_blueprint(rq_dashboard.blueprint, url_prefix="/rqstatus")
 
     @app.route('/api/trigger_download', methods=['POST'])
     def trigger_download():
@@ -177,7 +178,9 @@ def create_app(test_config=None):
 
         q = Queue(connection=conn)
         job_id = str(uuid.uuid4().hex)
-        job = q.enqueue(_youtubedl, job_id, list_name, url_list, config, job_id=job_id, description=list_name)
+        job = q.enqueue(_youtubedl, job_id, list_name, url_list,
+                        config, job_id=job_id, description=list_name,
+                        job_timeout='10m')
         # _youtubedl(job_id, list_name, url_list)
 
         download_id = str(job_id)
@@ -206,11 +209,7 @@ def create_app(test_config=None):
         download_url = get_s3_download_url(download_id)
         return download_url
 
-    
 
 ################
 
     return app
-
-
-
