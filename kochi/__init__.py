@@ -82,7 +82,6 @@ def create_app(test_config=None):
                         'preferredcodec': 'mp3',
                         'preferredquality': '320',
                         },
-                        {'key': 'EmbedThumbnail'},
                         {'key': 'FFmpegMetadata'},
                     ],
                     'logger': MyLogger(),

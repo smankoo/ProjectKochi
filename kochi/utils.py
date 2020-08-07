@@ -34,7 +34,6 @@ def _youtubedl(download_id, list_name, list_items, config):
                 'preferredcodec': 'mp3',
                 'preferredquality': '320',
             },
-            {'key': 'EmbedThumbnail'},
             {'key': 'FFmpegMetadata'},
         ],
         'logger': MyLogger(),
