@@ -10,7 +10,7 @@ Flask==1.1.2
 gunicorn==20.0.4
 isort==4.3.21
 itsdangerous==1.1.0
-Jinja2==2.11.3
+Jinja2==3.1.6
 jmespath==0.10.0
 -e git+https://github.com/smankoo/ProjectKochi.git@0f3d67b53c2bf5f5d403d2d23f6a9f6f568f1042#egg=kochi
 lazy-object-proxy==1.4.3
